@@ -35,23 +35,26 @@ context('fakengx', function()
   end)
 
   test('_captures.stub()', function()
-    ngx.location.stub("/subrequest")
-    ngx.location.stub("/subrequest", { body = "ABC", method = "POST" }, { status = 201 })
-    ngx.location.stub("/subrequest", { args = { b = 1, a = 2 } }, { body = "OK" })
+    local s1 = ngx.location.stub("/subrequest")
+    local s2 = ngx.location.stub("/subrequest", { body = "ABC", method = "POST" }, { status = 201 })
+    local s3 = ngx.location.stub("/subrequest", { args = { b = 1, a = 2 } }, { body = "OK" })
     assert_equal(ngx._captures:length(), 3)
 
     local stub
     stub = ngx._captures.stubs[1]
+    assert_equal(stub, s1)
     assert_equal(stub.uri, "/subrequest")
     assert_tables(stub.opts, { })
     assert_tables(stub.res, { status = 200, headers = {}, body = "" })
 
     stub = ngx._captures.stubs[2]
+    assert_equal(stub, s2)
     assert_equal(stub.uri, "/subrequest")
     assert_tables(stub.opts, { body = "ABC", method = "POST" })
     assert_tables(stub.res, { status = 201, headers = {}, body = "" })
 
     stub = ngx._captures.stubs[3]
+    assert_equal(stub, s3)
     assert_equal(stub.uri, "/subrequest")
     assert_tables(stub.opts, { args = "a=2&b=1" })
     assert_tables(stub.res, { status = 200, headers = {}, body = "OK" })
@@ -60,20 +63,20 @@ context('fakengx', function()
   test('_captures.find()', function()
     local s0 = ngx.location.stub("/subrequest", { }, { status = 200 })
     local s1 = ngx.location.stub("/subrequest", { method = "GET" }, { status = 200 })
-    local s2 = ngx.location.stub("/subrequest", { body = "ABC", method = "POST" }, { status = 201, headers = { Location = "http://host/resource/1" } })
+    local s2 = ngx.location.stub("/subrequest", { body = "A%a+C", method = "POST" }, { status = 201, headers = { Location = "http://host/resource/1" } })
     local s3 = ngx.location.stub("/subrequest", { args = { b = 1, a = 2 } }, { body = "OK" })
 
     assert_nil(ngx._captures:find("/not-registered", {}))
     assert_nil(ngx._captures:find("/not-registered"))
 
-    assert_tables(ngx._captures:find("/subrequest"), s1.res)
-    assert_tables(ngx._captures:find("/subrequest", { method = "GET" }), s1.res)
-    assert_tables(ngx._captures:find("/subrequest", { method = "POST", body = "ABC" }), s2.res)
-    assert_tables(ngx._captures:find("/subrequest", { body = "ABC" }), s1.res)
-    assert_tables(ngx._captures:find("/subrequest", { args = "a=2&b=1" }), s3.res)
-    assert_tables(ngx._captures:find("/subrequest", { args = { a = 2, b = 1 } }), s3.res)
-    assert_tables(ngx._captures:find("/subrequest", { args = "b=1&a=1" }), s1.res)
-    assert_tables(ngx._captures:find("/subrequest", { method = "POST" }), s0.res)
+    assert_tables(ngx._captures:find("/subrequest"), s1)
+    assert_tables(ngx._captures:find("/subrequest", { method = "GET" }), s1)
+    assert_tables(ngx._captures:find("/subrequest", { method = "POST", body = "ABC" }), s2)
+    assert_tables(ngx._captures:find("/subrequest", { body = "ABC" }), s1)
+    assert_tables(ngx._captures:find("/subrequest", { args = "a=2&b=1" }), s3)
+    assert_tables(ngx._captures:find("/subrequest", { args = { a = 2, b = 1 } }), s3)
+    assert_tables(ngx._captures:find("/subrequest", { args = "b=1&a=1" }), s1)
+    assert_tables(ngx._captures:find("/subrequest", { method = "POST" }), s0)
   end)
 
   test('print()', function()
@@ -135,11 +138,14 @@ context('fakengx', function()
   end)
 
   test('location.capture()', function()
-    ngx.location.stub("/stubbed", {}, { body = "OK" })
+    local s1 = ngx.location.stub("/stubbed", {}, { body = "OK" })
 
     assert_error(function() ngx.location.capture("/not-stubbed") end)
     assert_not_error(function() ngx.location.capture("/stubbed") end)
+    assert_equal(#s1.calls, 1)
+
     assert_tables(ngx.location.capture("/stubbed"), { status = 200, headers = {}, body = "OK" })
+    assert_equal(#s1.calls, 2)
   end)
 
 end)

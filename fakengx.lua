@@ -62,12 +62,14 @@ function Captures:find(uri, opts)
       local is_match = true
 
       for k,v in pairs(stub.opts) do
-        if opts[k] ~= v then
+        if type(v) == 'string' then
+          is_match = tostring(opts[k]):match(v) and true
+        elseif opts[k] ~= v then
           is_match = false
-          break
         end
+        if not is_match then break end
       end
-      if is_match then return stub.res end
+      if is_match then return stub end
     end
   end
 
@@ -75,7 +77,7 @@ function Captures:find(uri, opts)
 end
 
 function Captures:stub(uri, opts, res)
-  local stub = { uri = uri, opts = stub_options(opts), res = stub_response(res) }
+  local stub = { uri = uri, opts = stub_options(opts), res = stub_response(res), calls = {} }
   table.insert(self.stubs, stub)
   return stub
 end
@@ -223,10 +225,12 @@ function fakengx.new()
   end
 
   -- http://wiki.nginx.org/HttpLuaModule#ngx.location.capture
-  function ngx.location.capture(uri, options)
-    local response = ngx._captures:find(uri, options)
-    assert(response, "invalid capture: " .. uri .. " request is not stubbed")
-    return response
+  function ngx.location.capture(uri, opts)
+    local stub = ngx._captures:find(uri, opts)
+    assert(stub, "invalid request: " .. uri .. " is not stubbed")
+
+    table.insert(stub.calls, { uri = uri, opts = opts })
+    return stub.res
   end
 
   -- Stub a capture

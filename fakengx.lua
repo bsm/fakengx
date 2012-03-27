@@ -38,6 +38,21 @@ local function stub_response(res)
   return reverse_merge(res or {},  { status = 200, headers = {}, body = "" })
 end
 
+local function stub_format(uri, opts)
+  local pad = 0
+  for k,_ in pairs(opts) do
+    if k ~= "method" and #k > pad then pad = #k end
+  end
+
+  local msg = "  " .. (opts.method or "GET") .. " " .. uri .. "\n"
+  for k,v in pairs(opts) do
+    if k ~= "method" then
+      k   = k .. ":" .. string.rep(" ", pad + 1 - #k)
+      msg = msg .. "  " .. k .. v .. "\n"
+    end
+  end
+  return msg
+end
 
 -- Capture Registry
 local Captures = {}
@@ -53,17 +68,26 @@ function Captures:length()
   return #self.stubs
 end
 
+function Captures:each(fun)
+  for i=self:length(),1,-1 do
+    local stub = self.stubs[i]
+    fun(stub)
+  end
+end
+
 function Captures:find(uri, opts)
   opts = stub_options(opts, "GET")
 
-  for i=#self.stubs,1,-1 do
+  for i=self:length(),1,-1 do
     local stub = self.stubs[i]
     if uri == stub.uri then
       local is_match = true
 
       for k,v in pairs(stub.opts) do
-        if type(v) == 'string' then
-          is_match = tostring(opts[k]):match(v) and true
+        if type(v) == 'function' then
+          is_match = v(opts[k])
+        elseif type(v) == 'string' and v:sub(1, 2) == "~>" then
+          is_match = tostring(opts[k]):match(v:sub(3)) and true
         elseif opts[k] ~= v then
           is_match = false
         end
@@ -227,7 +251,13 @@ function fakengx.new()
   -- http://wiki.nginx.org/HttpLuaModule#ngx.location.capture
   function ngx.location.capture(uri, opts)
     local stub = ngx._captures:find(uri, opts)
-    assert(stub, "invalid request: " .. uri .. " is not stubbed")
+    if not stub then
+      local msg = "\n\nUnstubbed request:\n\n" .. stub_format(uri, opts) .. "\nStubbed were:\n"
+      ngx._captures:each(function(stub)
+        msg = msg .. "\n" .. stub_format(stub.uri, stub.opts)
+      end)
+      error(msg)
+    end
 
     table.insert(stub.calls, { uri = uri, opts = opts })
     return stub.res

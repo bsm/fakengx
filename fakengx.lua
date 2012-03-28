@@ -38,6 +38,15 @@ local function stub_response(res)
   return reverse_merge(res or {},  { status = 200, headers = {}, body = "" })
 end
 
+local control_chars = {
+  ["\a"] = "\\a",  ["\b"] = "\\b", ["\f"] = "\\f",  ["\n"] = "\\n",
+  ["\r"] = "\\r",  ["\t"] = "\\t", ["\v"] = "\\v",  ["\\"] = "\\\\"
+}
+
+local function replace_control_char(c)
+  return control_chars[c]
+end
+
 local function stub_format(uri, opts)
   local pad = 0
   for k,_ in pairs(opts) do
@@ -48,7 +57,7 @@ local function stub_format(uri, opts)
   for k,v in pairs(opts) do
     if k ~= "method" then
       k   = k .. ":" .. string.rep(" ", pad + 1 - #k)
-      msg = msg .. "  " .. k .. v .. "\n"
+      msg = msg .. "  " .. k .. v:gsub("(%c)", replace_control_char) .. "\n"
     end
   end
   return msg
@@ -161,21 +170,6 @@ local protoype = {
   HTTP_GATEWAY_TIME_OUT          = 504,
   HTTP_INSUFFICIENT_STORAGE      = 507,
 
-  -- Tables
-  var       = {},
-  header    = {},
-  arg       = {},
-
-  -- Defaults
-  status    = 200,
-  location  = {},
-
-  -- Internal Registries
-  _captures = Captures:new(),
-  _body     = "",
-  _log      = "",
-  _exit     = nil
-
 }
 
 -- NGX Builder
@@ -188,6 +182,21 @@ function fakengx.new()
     ngx[k] = v
   end
   setmetatable(ngx, getmetatable(protoype))
+
+  -- Defaults
+  ngx.status    = 200
+  ngx.location  = {}
+
+  -- Tables
+  ngx.var       = {}
+  ngx.header    = {}
+  ngx.arg       = {}
+
+  -- Internal Registries
+  ngx._captures = Captures:new()
+  ngx._body     = ""
+  ngx._log      = ""
+  ngx._exit     = nil
 
   -- http://wiki.nginx.org/HttpLuaModule#ngx.print
   function ngx.print(s)

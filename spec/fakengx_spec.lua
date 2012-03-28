@@ -10,6 +10,12 @@ context('fakengx', function()
     assert_type(ngx, 'table')
   end)
 
+  test('fresh instances', function()
+    ngx.var.something = 1
+    local a = fakengx.new()
+    assert_tables(a.var, {})
+  end)
+
   test('constants', function()
     assert_equal(ngx.DEBUG, 8)
     assert_equal(ngx.HTTP_GET, 'GET')

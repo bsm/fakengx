@@ -272,6 +272,16 @@ function fakengx.new()
     return stub.res
   end
 
+  -- http://wiki.nginx.org/HttpLuaModule#ngx.location.capture_multi
+  function ngx.location.capture_multi(...)
+    local requests  = ...
+    local responses = {}
+    for i, request in ipairs(requests) do
+      table.insert(responses, ngx.location.capture(request[1], request[2]))
+    end
+    return responses
+  end
+
   -- Stub a capture
   function ngx.location.stub(...)
     return ngx._captures:stub(...)

@@ -155,5 +155,14 @@ context('fakengx', function()
     assert_tables(ngx.location.capture("/stubbed"), { status = 200, headers = {}, body = "OK" })
     assert_equal(#s1.calls, 2)
   end)
+  
+  test('location.capture_multi()', function()
+    local s1 = ngx.location.stub("/stubbed", {}, { body = "OK" })
+    local s2 = ngx.location.stub("/stubbed2", {}, { body = "OK" })
+
+    assert_not_error(function() ngx.location.capture_multi({ { "/stubbed" }, { "/stubbed2"} }) end)
+    assert_equal(#s1.calls, 1)
+    assert_equal(#s2.calls, 1)
+  end)
 
 end)

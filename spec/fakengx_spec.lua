@@ -163,6 +163,11 @@ context('fakengx', function()
     assert_not_error(function() ngx.location.capture_multi({ { "/stubbed" }, { "/stubbed2"} }) end)
     assert_equal(#s1.calls, 1)
     assert_equal(#s2.calls, 1)
+
+    local r1, r2
+    r1, r2 = ngx.location.capture_multi({ { "/stubbed" }, { "/stubbed2"} })
+    assert_equal(r1.body, 'OK')
+    assert_equal(r2.body, 'OK')
   end)
 
 end)

@@ -280,7 +280,7 @@ function fakengx.new()
     for i, request in ipairs(requests) do
       table.insert(responses, ngx.location.capture(request[1], request[2]))
     end
-    return responses
+    return unpack(responses)
   end
 
   -- Stub a capture

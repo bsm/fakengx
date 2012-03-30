@@ -191,6 +191,7 @@ function fakengx.new()
   ngx.var       = {}
   ngx.header    = {}
   ngx.arg       = {}
+  ngx.req       = {}
 
   -- Internal Registries
   ngx._captures = Captures:new()

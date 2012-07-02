@@ -104,7 +104,22 @@ context('fakengx', function()
 
   test('time()', function()
     assert_type(ngx.time(), 'number')
-    assert_equal(ngx.time(), os.time())
+    local t = os.time()
+    assert_equal(ngx.time(), t)
+    while os.time() - t == 0 do end -- wait for next second
+    assert_equal(ngx.time(), t)     -- ensure cached value is used
+  end)
+
+  test('update_time()', function()
+    local t = os.time()
+    local t1 = ngx.time()
+    local n1 = ngx.now()
+    while os.time() - t == 0 do end -- wait for next second
+    assert_equal(ngx.time(), t1)    -- until ngx.update_time() is called uses cached value
+    assert_equal(ngx.now(), n1)
+    ngx.update_time()
+    assert_greater_than(ngx.time(), t1)
+    assert_greater_than(ngx.now(), n1)
   end)
 
   test('now()', function()
@@ -155,7 +170,7 @@ context('fakengx', function()
     assert_tables(ngx.location.capture("/stubbed"), { status = 200, headers = {}, body = "OK" })
     assert_equal(#s1.calls, 2)
   end)
-  
+
   test('location.capture_multi()', function()
     local s1 = ngx.location.stub("/stubbed", {}, { body = "OK" })
     local s2 = ngx.location.stub("/stubbed2", {}, { body = "OK" })

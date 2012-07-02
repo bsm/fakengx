@@ -216,12 +216,24 @@ function fakengx.new()
 
   -- http://wiki.nginx.org/HttpLuaModule#ngx.time
   function ngx.time()
-    return os.time()
+    if not ngx._time then
+      ngx._time = os.time()
+    end
+    return ngx._time
+  end
+
+  -- http://wiki.nginx.org/HttpLuaModule#ngx.update_time
+  function ngx.update_time()
+    ngx._time = nil
+    ngx._now = nil
   end
 
   -- http://wiki.nginx.org/HttpLuaModule#ngx.now
   function ngx.now()
-    return socket.gettime()
+    if not ngx._now then
+      ngx._now = socket.gettime()
+    end
+    return ngx._now
   end
 
   -- http://wiki.nginx.org/HttpLuaModule#ngx.exit

@@ -185,4 +185,8 @@ context('fakengx', function()
     assert_equal(r2.body, 'OK')
   end)
 
+  test('req.read_body()', function()
+    assert_nil(ngx.req.read_body())
+  end)
+
 end)

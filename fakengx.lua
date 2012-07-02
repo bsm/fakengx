@@ -300,6 +300,10 @@ function fakengx.new()
     return ngx._captures:stub(...)
   end
 
+  -- http://wiki.nginx.org/HttpLuaModule#ngx.req.read_body
+  function ngx.req.read_body()
+  end
+
   return ngx
 end
 

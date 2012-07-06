@@ -189,15 +189,4 @@ context('fakengx', function()
     assert_nil(ngx.req.read_body())
   end)
 
-  test('shared.get()', function()
-    ngx.shared.shared_key = 123
-    assert_equal(ngx.shared:get('shared_key'), 123)
-  end)
-
-  test('shared.set()', function()
-    ngx.shared:set('some_key', 456)
-    assert_equal(ngx.shared.some_key, 456)
-    assert_equal(ngx.shared:get('some_key'), 456)
-  end)
-
 end)

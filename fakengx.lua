@@ -192,6 +192,7 @@ function fakengx.new()
   ngx.header    = {}
   ngx.arg       = {}
   ngx.req       = {}
+  ngx.shared    = {}
 
   -- Internal Registries
   ngx._captures = Captures:new()
@@ -302,6 +303,17 @@ function fakengx.new()
 
   -- http://wiki.nginx.org/HttpLuaModule#ngx.req.read_body
   function ngx.req.read_body()
+  end
+
+  -- http://wiki.nginx.org/HttpLuaModule#ngx.shared.DICT.get
+  function ngx.shared.get(self, key)
+    return self[key]
+  end
+
+  -- http://wiki.nginx.org/HttpLuaModule#ngx.shared.DICT.set
+  function ngx.shared.set(self, key, value)
+    self[key] = value
+    return true
   end
 
   return ngx

@@ -254,7 +254,7 @@ function fakengx.new()
 
   -- http://wiki.nginx.org/HttpLuaModule#ngx.hmac_sha1
   function ngx.hmac_sha1(secret_key, str)
-    return sha1.hmac_sha1(secret_key, str)
+    return sha1.hmac_sha1_binary(secret_key, str)
   end
 
   -- http://wiki.nginx.org/HttpLuaModule#ngx.sha1_bin

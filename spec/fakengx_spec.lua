@@ -248,6 +248,16 @@ context('fakengx', function()
     assert_equal(ngx.sha1_bin("abc"), string.char(169,153,62,54,71,6,129,106,186,62,37,113,120,80,194,108,156,208,216,157))
   end)
 
+  test('md5()', function()
+    assert_type(ngx.md5("abc"), 'string')
+    assert_equal(ngx.md5("abc"), '900150983cd24fb0d6963f7d28e17f72')
+  end)
+
+  test('md5_bin()', function()
+    assert_type(ngx.md5_bin("abc"), 'string')
+    assert_equal(ngx.md5_bin("abc"), string.char(144,1,80,152,60,210,79,176,214,150,63,125,40,225,127,114))
+  end)
+
   test('encode_base64()', function()
     assert_type(ngx.encode_base64("abc"), 'string')
     assert_equal(ngx.encode_base64("abc"), 'YWJj')

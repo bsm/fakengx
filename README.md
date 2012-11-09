@@ -119,7 +119,7 @@ and the [bitop](http://bitop.luajit.org/) libraries.
 
 To install (on Debian, Ubuntu, etc):
 
-    sudo apt-get install lua5.1 luarocks liblua5.1-socket2 liblua5.1-bitop0
+    sudo apt-get install lua5.1 luarocks liblua5.1-socket2 liblua5.1-bitop0 liblua5.1-md5-0
 
 ## Contributing ##
 

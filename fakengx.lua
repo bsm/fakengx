@@ -272,6 +272,7 @@ function fakengx.new()
 
   -- Tables
   ngx.var       = {}
+  ngx.ctx       = {}
   ngx.header    = {}
   ngx.arg       = {}
   ngx.req       = {}

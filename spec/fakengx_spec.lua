@@ -87,6 +87,76 @@ context('fakengx', function()
     assert_tables(ngx._captures:find("/subrequest", { body = "HI" }), s4)
   end)
 
+  test('shared.DICT.set()', function()
+    local ok, err = ngx.shared.store:set("key", "value")
+    assert_equal(ok, true)
+    assert_equal(err, nil)
+  end)
+
+  test('shared.DICT.get()', function()
+    local val
+
+    val = ngx.shared.store:get("key")
+    assert_equal(val, nil)
+
+    ngx.shared.store:set("key", "value")
+    val = ngx.shared.store:get("key")
+    assert_equal(val, "value")
+  end)
+
+  test('shared.DICT.add()', function()
+    local ok, err
+    ok, err = ngx.shared.store:add("key", "v1")
+    assert_equal(ok, true)
+    assert_equal(err, nil)
+
+    ok, err = ngx.shared.store:add("key", "v2")
+    assert_equal(ok, false)
+    assert_equal(err, "exists")
+
+    assert_equal(ngx.shared.store:get("key"), "v1")
+  end)
+
+  test('shared.DICT.replace()', function()
+    local ok, err
+    ok, err = ngx.shared.store:replace("key", "v1")
+    assert_equal(ok, false)
+    assert_equal(err, "not found")
+
+    ok, err = ngx.shared.store:add("key", "v1")
+    ok, err = ngx.shared.store:replace("key", "v2")
+    assert_equal(ok, true)
+    assert_equal(err, nil)
+
+    assert_equal(ngx.shared.store:get("key"), "v2")
+  end)
+
+  test('shared.DICT.delete()', function()
+    assert_equal(ngx.shared.store:get("key"), nil)
+    ngx.shared.store:set("key", "v")
+    assert_equal(ngx.shared.store:get("key"), "v")
+    ngx.shared.store:delete("key", "v")
+    assert_equal(ngx.shared.store:get("key"), nil)
+  end)
+
+  test('shared.DICT.incr()', function()
+    local ok, err
+    ok, err = ngx.shared.store:incr("key", 1)
+    assert_equal(ok, nil)
+    assert_equal(err, "not found")
+
+    ngx.shared.store:set("key", "v")
+    ok, err = ngx.shared.store:incr("key", 1)
+    assert_equal(ok, nil)
+    assert_equal(err, "not a number")
+
+    ngx.shared.store:set("key", 123)
+    ok, err = ngx.shared.store:incr("key", 1)
+    assert_equal(ok, 124)
+    assert_equal(err, nil)
+  end)
+
+
   test('print()', function()
     ngx.print("string")
     assert_equal(ngx._body, "string")
@@ -126,6 +196,11 @@ context('fakengx', function()
     assert_type(ngx.now(), 'number')
     assert(ngx.now() >= os.time())
     assert(ngx.now() <= (os.time() + 1))
+  end)
+
+  test('cookie_time()', function()
+    assert_type(ngx.cookie_time(1212121212), 'string')
+    assert_equal(ngx.cookie_time(1212121212), 'Fri, 30-May-2008 04:20:12 GMT')
   end)
 
   test('exit()', function()
@@ -171,6 +246,16 @@ context('fakengx', function()
   test('sha1_bin()', function()
     assert_type(ngx.sha1_bin("abc"), 'string')
     assert_equal(ngx.sha1_bin("abc"), string.char(169,153,62,54,71,6,129,106,186,62,37,113,120,80,194,108,156,208,216,157))
+  end)
+
+  test('encode_base64()', function()
+    assert_type(ngx.encode_base64("abc"), 'string')
+    assert_equal(ngx.encode_base64("abc"), 'YWJj')
+  end)
+
+  test('decode_base64()', function()
+    assert_type(ngx.decode_base64("YWJj"), 'string')
+    assert_equal(ngx.decode_base64("YWJj"), 'abc')
   end)
 
   test('location.capture()', function()

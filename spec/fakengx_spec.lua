@@ -233,6 +233,7 @@ context('fakengx', function()
     assert_type(ngx.crc32_short("abc"), 'number')
     assert_equal(ngx.crc32_short("abc"), 891568578)
     assert_equal(ngx.crc32_short("def"), 214229345)
+    assert_equal(ngx.crc32_short("another"), 2636723256)
   end)
 
   test('hmac_sha1()', function()

@@ -346,7 +346,7 @@ function fakengx.new()
     for i = 1, l, 1 do
      crc = bit.bxor(bit.rshift(crc, 8), CRC32[bit.band(bit.bxor(crc, string.byte(s, i)), 0xFF) + 1])
     end
-    return bit.bxor(crc, -1)
+    return bit.bxor(crc, -1) % 2^32
   end
 
   -- http://wiki.nginx.org/HttpLuaModule#ngx.hmac_sha1

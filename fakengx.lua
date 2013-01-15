@@ -118,32 +118,61 @@ function Captures:stub(uri, opts, res)
   return stub
 end
 
--- Socket Proxy
-local Socket = {}
-Socket.__index = Socket
+-- TCP Proxy
+local TCP = {}
+TCP.__index = TCP
 
-function Socket:new()
+function TCP:new()
   local this = { host = nil, port = 0, timeout = 0, keepalive = {-1, 0}, data = {} }
-  setmetatable(this, Socket)
+  setmetatable(this, TCP)
   return this
 end
 
-function Socket:connect(host, port)
+function TCP:connect(host, port)
   self.host = host
   self.port = port
   return true, nil
 end
 
-function Socket:settimeout(value)
+function TCP:settimeout(value)
   self.timeout = value
 end
 
-function Socket:setkeepalive(...)
+function TCP:setkeepalive(...)
   self.keepalive = {...}
 end
 
-function Socket:send(msg)
+function TCP:send(msg)
   table.insert(self.data, msg)
+end
+
+-- UDP Proxy
+local UDP = {}
+UDP.__index = UDP
+
+function UDP:new()
+  local this = { host = nil, port = 0, timeout = 0, data = {}, closed = false }
+  setmetatable(this, UDP)
+  return this
+end
+
+function UDP:setpeername(host, port)
+  self.host = host
+  self.port = port
+  return true, nil
+end
+
+function UDP:settimeout(value)
+  self.timeout = value
+end
+
+function UDP:send(msg)
+  table.insert(self.data, msg)
+end
+
+function UDP:close()
+  self.closed = true
+  return true, nil
 end
 
 -- DICT Proxy
@@ -424,7 +453,14 @@ function fakengx.new()
 
   -- http://wiki.nginx.org/HttpLuaModule#ngx.socket.tcp
   function ngx.socket.tcp()
-    local sock = Socket:new()
+    local sock = TCP:new()
+    table.insert(ngx._sockets, sock)
+    return sock
+  end
+
+  -- http://wiki.nginx.org/HttpLuaModule#ngx.socket.udp
+  function ngx.socket.udp()
+    local sock = UDP:new()
     table.insert(ngx._sockets, sock)
     return sock
   end

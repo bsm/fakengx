@@ -168,6 +168,7 @@ end
 
 function UDP:send(msg)
   table.insert(self.data, msg)
+  return true, nil
 end
 
 function UDP:close()
@@ -306,6 +307,7 @@ function fakengx.new()
   ngx.arg       = {}
   ngx.req       = {}
   ngx.socket    = {}
+  ngx.thread    = {}
   ngx.shared    = {}
   setmetatable(ngx.shared, {
     __index = function(t, k)
@@ -473,6 +475,16 @@ function fakengx.new()
   -- http://wiki.nginx.org/HttpLuaModule#ngx.decode_base64
   function ngx.decode_base64(s)
     return mime.unb64(s)
+  end
+
+  -- http://wiki.nginx.org/HttpLuaModule#ngx.thread.spawn
+  function ngx.thread.spawn(fun, ...)
+    return { ["fun"] = fun, ["args"] = {...} }
+  end
+
+  -- http://wiki.nginx.org/HttpLuaModule#ngx.thread.wait
+  function ngx.thread.wait(thread)
+    return true, thread.fun(unpack(thread.args))
   end
 
   return ngx

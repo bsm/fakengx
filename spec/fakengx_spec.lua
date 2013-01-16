@@ -298,4 +298,19 @@ context('fakengx', function()
     assert_nil(ngx.req.read_body())
   end)
 
+  test('thread.spawn()', function()
+    local concat = function(a, b) return "Hello " .. a .. b end
+    assert_tables(ngx.thread.spawn(concat, "Wor", "ld"), {
+      fun = concat, args = { "Wor", "ld" }
+    })
+  end)
+
+  test('thread.wait()', function()
+    local concat = function(a, b) return "Hello " .. a .. b end
+    local thread = ngx.thread.spawn(concat, "Wor", "ld")
+    local ok, res = ngx.thread.wait(thread)
+    assert_equal(ok, true)
+    assert_equal(res, "Hello World")
+  end)
+
 end)

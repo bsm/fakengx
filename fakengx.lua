@@ -119,12 +119,9 @@ end
 
 -- TCP Proxy
 local TCP = {}
-TCP.__index = TCP
 
 function TCP:new()
-  local this = { host = nil, port = 0, timeout = 0, keepalive = {-1, 0}, data = {} }
-  setmetatable(this, TCP)
-  return this
+  return setmetatable({ host = nil, port = 0, timeout = 0, keepalive = {-1, 0}, data = {} }, { __index = self })
 end
 
 function TCP:connect(host, port)
@@ -147,12 +144,9 @@ end
 
 -- UDP Proxy
 local UDP = {}
-UDP.__index = UDP
 
 function UDP:new()
-  local this = { host = nil, port = 0, timeout = 0, data = {}, closed = false }
-  setmetatable(this, UDP)
-  return this
+  return setmetatable({ host = nil, port = 0, timeout = 0, data = {}, closed = false }, { __index = self })
 end
 
 function UDP:setpeername(host, port)
@@ -177,12 +171,9 @@ end
 
 -- DICT Proxy
 local SharedDict = {}
-SharedDict.__index = SharedDict
 
 function SharedDict:new()
-  local this = { data = {} }
-  setmetatable(this, SharedDict)
-  return this
+  return setmetatable({ data = {} }, { __index = self })
 end
 
 function SharedDict:get(key)
@@ -491,7 +482,7 @@ function fakengx.new()
 
   -- http://wiki.nginx.org/HttpLuaModule#ngx.thread.spawn
   function ngx.thread.spawn(fun, ...)
-    return { ["fun"] = fun, ["args"] = {...} }
+    return { fun = fun, args = {...} }
   end
 
   -- http://wiki.nginx.org/HttpLuaModule#ngx.thread.wait

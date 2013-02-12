@@ -68,11 +68,10 @@ end
 
 -- Capture Registry
 local Captures = {}
-Captures.__index = Captures
 
 function Captures:new()
   local this = { stubs = {} }
-  setmetatable(this, Captures)
+  setmetatable(this, { __index = self })
   return this
 end
 
@@ -296,19 +295,15 @@ function fakengx.new()
   end
   setmetatable(ngx, getmetatable(protoype))
 
-  -- Defaults
-  ngx.status    = 200
-  ngx.location  = {}
-
-  -- Tables
-  ngx.var       = {}
-  ngx.ctx       = {}
-  ngx.header    = {}
-  ngx.arg       = {}
+  -- Create namespaces
   ngx.req       = {}
+  ngx.re        = {}
   ngx.socket    = {}
   ngx.thread    = {}
+  ngx.location  = {}
   ngx.shared    = {}
+
+  -- Create shared dict API
   setmetatable(ngx.shared, {
     __index = function(t, k)
       t[k] = SharedDict:new()
@@ -316,12 +311,27 @@ function fakengx.new()
     end
   })
 
-  -- Internal Registries
-  ngx._captures = Captures:new()
-  ngx._sockets  = {}
-  ngx._body     = ""
-  ngx._log      = ""
-  ngx._exit     = nil
+  function ngx._reset()
+    ngx.status    = 200
+    ngx.var       = {}
+    ngx.ctx       = {}
+    ngx.header    = {}
+    ngx.arg       = {}
+
+    -- Internal Registries
+    ngx._captures = Captures:new()
+    ngx._sockets  = {}
+    ngx._body     = ""
+    ngx._log      = ""
+    ngx._exit     = nil
+
+    for k,_ in pairs(ngx.shared) do
+      ngx.shared[k] = nil
+    end
+  end
+
+  -- Reset once
+  ngx._reset()
 
   -- http://wiki.nginx.org/HttpLuaModule#ngx.print
   function ngx.print(s)
@@ -334,8 +344,10 @@ function fakengx.new()
   end
 
   -- http://wiki.nginx.org/HttpLuaModule#ngx.log
-  function ngx.log(level, s)
-    ngx._log = ngx._log .. "LOG(" .. tostring(level) .. "): " .. s .. "\n"
+  function ngx.log(level, ...)
+    local args = {...}
+    for i=1,#args do args[i] = tostring(args[i]) or "nil" end
+    ngx._log = ngx._log .. "LOG(" .. tostring(level) .. "): " .. table.concat(args) .. "\n"
   end
 
   -- http://wiki.nginx.org/HttpLuaModule#ngx.time
@@ -423,9 +435,9 @@ function fakengx.new()
   function ngx.location.capture(uri, opts)
     local stub = ngx._captures:find(uri, opts)
     if not stub then
-      local msg = "\n\nUnstubbed request:\n\n" .. stub_format(uri, opts) .. "\nStubbed were:\n"
+      local msg = "\n\nUnstubbed request:\n\n" .. stub_format(uri, opts or {}) .. "\nStubbed were:\n"
       ngx._captures:each(function(stub)
-        msg = msg .. "\n" .. stub_format(stub.uri, stub.opts)
+        msg = msg .. "\n" .. stub_format(stub.uri, stub.opts or {})
       end)
       error(msg)
     end
@@ -485,6 +497,16 @@ function fakengx.new()
   -- http://wiki.nginx.org/HttpLuaModule#ngx.thread.wait
   function ngx.thread.wait(thread)
     return true, thread.fun(unpack(thread.args))
+  end
+
+  -- http://wiki.nginx.org/HttpLuaModule#ngx.re.gmatch
+  function ngx.re.gmatch(s, pattern)
+    return string.gmatch(s, pattern)
+  end
+
+  -- http://wiki.nginx.org/HttpLuaModule#ngx.re.match
+  function ngx.re.match(s, pattern)
+    return string.match(s, pattern)
   end
 
   return ngx

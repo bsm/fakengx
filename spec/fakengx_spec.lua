@@ -217,7 +217,7 @@ context('fakengx', function()
   end)
 
   test('escape_uri()', function()
-    assert_equal(ngx.escape_uri("here [ & ] now"), "here+%5B+%26+%5D+now")
+    assert_equal(ngx.escape_uri("here [ & ] now_"), "here+%5B+%26+%5D+now_")
   end)
 
   test('unescape_uri()', function()
@@ -297,6 +297,7 @@ context('fakengx', function()
   test('req.read_body()', function()
     assert_nil(ngx.req.read_body())
   end)
+
 
   test('thread.spawn()', function()
     local concat = function(a, b) return "Hello " .. a .. b end

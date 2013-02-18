@@ -405,7 +405,7 @@ function fakengx.new()
 
   -- http://wiki.nginx.org/HttpLuaModule#ngx.escape_uri
   function ngx.escape_uri(str)
-    return tostring(str):gsub("\n", "\r\n"):gsub("([^%w ])", function (c)
+    return tostring(str):gsub("\n", "\r\n"):gsub("([^%w_ ])", function (c)
       return string.format("%%%02X", string.byte(c))
     end):gsub(" ", "+")
   end

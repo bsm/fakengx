@@ -7,7 +7,7 @@ local CRC32  = { 0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA, 0x076DC419, 0x7
 
 -- Helpers
 local encode_param = function(str)
-  return tostring(str):gsub("\n", "\r\n"):gsub("([^%w])", function (c)
+  return tostring(str):gsub("\n", "\r\n"):gsub("([^%w_])", function (c)
     return string.format("%%%02X", string.byte(c))
   end)
 end
